@@ -81,12 +81,29 @@ class Player(Soldier):
         self.animate(dt)
 
 
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, groups, direction):
+        super().__init__(groups)
+        self.image = pygame.Surface((4, 2))
+        self.image.fill((255, 0, 0))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.direction = direction
+
+    def update(self, dt, offset):
+        self.rect.x += 500 * dt * self.direction
+        self.rect.x -= offset.x
+        if self.rect.collidelist(all_sprites.sprites()) >= 0 and not self.rect.colliderect(player.rect):
+            self.kill()
+
+
 def load_animation(path):
     frames = []
     for i in os.listdir(path):
         img = pygame.image.load(f"{path}{i}")
         frames.append(img)
     return frames
+
 
 # noinspection PyTypeChecker
 player = Player(200, 200, 3, load_animation('img/player/idle/'), all_sprites)
@@ -98,6 +115,8 @@ clock = pygame.time.Clock()
 
 offset = pygame.math.Vector2(0, 0)
 
+bullets = []
+
 while run:
     dt = clock.tick() / 1000
     pygame.display.set_caption("Shooter FPS : " + str(round(clock.get_fps())))
@@ -108,6 +127,8 @@ while run:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 run = False
+            if event.key == pygame.K_SPACE:
+                bullets.append(Bullet(player.rect.centerx, player.rect.centery, all_sprites, player.direction.x))
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a]:
